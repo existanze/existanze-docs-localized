@@ -53,8 +53,8 @@ _A common source of problems is the **alias** name of the module_
 
 ##TODO
 
-- [] Never Types
-- [] Universal Content 
+- [ ] Never Types
+- [ ] Universal Content 
 
 
 
