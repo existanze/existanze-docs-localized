@@ -9,7 +9,6 @@ module.exports = {
 
 
     self.apos.app.use(self.localizedHelper);
-    self.apos.app.use(self.localizedSessionToLocale);
     self.apos.app.use(self.localizedGet);
 
 
@@ -21,6 +20,28 @@ module.exports = {
     self.defaultLocale = options.default || "en";
     self.locales = options.locales;
     self.localized = [ 'title' ].concat(options.localized || []);
+
+
+    self.setLocale = function(req,locale){
+
+      var set = locale;
+
+      if(!set){
+        set = req.session.locale;
+      }
+
+
+      if(!set){
+        set = self.defaultLocale;
+      }
+
+      req.locale = set;
+      req.session.locale = set;
+      req.data.activeLocale = set;
+      self.apos.i18n.setLocale(req,set);
+
+
+    };
 
     self.localizedHelper=function(req, res, next) {
       self.addHelpers({
@@ -77,20 +98,6 @@ module.exports = {
 
     };
 
-    self.localizedSessionToLocale=function(req, res, next) {
-
-
-
-      if(req.session.locale){
-        req.locale = req.session.locale;
-      }else{
-        req.locale = options.default;
-      }
-      req.data.activeLocale = req.locale;
-      return next();
-
-    };
-
     self.localizedGet=function(req, res, next) {
       if (req.method !== 'GET') {
         return next();
@@ -99,20 +106,17 @@ module.exports = {
       var matches = req.url.match(/^\/(\w+)(\/.*|\?.*|)$/);
       if (!matches) {
         //do not keep the session locale here
-        req.locale = self.defaultLocale;
-        req.session.locale = req.locale;
+        self.setLocale(req,self.defaultLocale);
         return next();
       }
 
       if (!_.has(options.locales, matches[1])) {
-        req.locale = self.defaultLocale;
-        req.session.locale = req.locale;
+        self.setLocale(req,self.defaultLocale);
         return next();
       }
 
+      self.setLocale(req,matches[1]);
 
-      req.locale = matches[1];
-      req.session.locale = req.locale;
       req.url = matches[2];
 
       if (!req.url.length) {
