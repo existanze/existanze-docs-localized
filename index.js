@@ -64,25 +64,25 @@ module.exports = {
             availableLanguages = _.keys(args.localized);
           }
 
-          _.each(options.locales, function (label, locale) {
+          _.each(options.locales, function (value, key) {
 
 
-            var newUrl = '/' + locale + currentUrl;
+            var newUrl = '/' + key + currentUrl;
 
             /**
              * We don't want to include a locale
              * slug for defaultLocale
              */
-            if(locale == self.defaultLocale){
+            if(key == self.defaultLocale){
               newUrl = currentUrl;
             }
 
             var localeObject = {
-              key: locale,
-              label: label,
+              key: key,
+              locale: value,
               url: newUrl,
-              translated: (_.indexOf(availableLanguages, locale) >=0) ,
-              active: (req.locale === locale)
+              translated: (_.indexOf(availableLanguages, key) >=0) ,
+              active: (req.locale === key)
             };
 
             locales.push(localeObject);

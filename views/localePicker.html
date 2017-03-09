@@ -1,5 +1,5 @@
 <ul class="list x-languages">
   {% for locale in data.locales %}
-    <li class="locale-item {%  if locale.active %}locale-active{% endif %}" ><a href="{{ locale.url }}">{{ locale.label.iso | e}}</a></li>
+    <li class="locale-item {%  if locale.active %}locale-active{% endif %}" ><a href="{{ locale.url }}">{{ locale.value.iso | e}}</a></li>
   {% endfor %}
 </ul>
