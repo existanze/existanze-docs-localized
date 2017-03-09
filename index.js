@@ -79,7 +79,7 @@ module.exports = {
 
             var localeObject = {
               key: key,
-              locale: value,
+              value: value,
               url: newUrl,
               translated: (_.indexOf(availableLanguages, key) >=0) ,
               active: (req.locale === key)
