@@ -5,6 +5,7 @@ var u = require("./lib/utils");
 
 module.exports = {
   improve: 'apostrophe-docs',
+  alias:'existanzeDocs',
   afterConstruct:function(self){
 
 
@@ -90,6 +91,20 @@ module.exports = {
           });
 
           return self.partial('localePicker', {locales: locales, args: args});
+
+        },
+        toLocalUrl:function(url){
+
+
+          /**
+           * We don't want to include a locale
+           * slug for defaultLocale
+           */
+          if(req.locale == self.defaultLocale){
+            return url;
+          }
+
+          return "/"+ req.locale+ url;
 
         }
       });
