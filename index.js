@@ -94,36 +94,15 @@ module.exports = {
     };
 
     self.localizedGet=function(req, res, next) {
-      if (req.method !== 'GET') {
 
-        console.log("index.js - Not GET returning");
+      if (req.method !== 'GET') {
         return next();
       }
 
       function setLocale(req,locale){
 
         var set = locale;
-
-
-        // if(!set){
-        //   set = req.locale;
-        // }
-        //
-        // if(!set){
-        //   set = req.session.locale;
-        // }
-        //
-        //
-        // if(!set){
-        //   set = self.defaultLocale;
-        // }
-        //
-
         req.locale = set;
-        // req.session.locale = set;
-        console.log("index.js - Setting locale ",set,req.locale,
-          req.session.locale,locale);
-
         req.data.activeLocale = set;
         self.apos.i18n.setLocale(req,set);
 
@@ -134,13 +113,11 @@ module.exports = {
       var matches = req.url.match(/^\/(\w+)(\/.*|\?.*|)$/);
       if (!matches) {
         //do not keep the session locale here
-        console.log("index.js - Not MATCH returning");
         setLocale(req,self.defaultLocale);
         return next();
       }
 
       if (!_.has(options.locales, matches[1])) {
-        console.log("index.js - Not MATCH returning");
         setLocale(req,self.defaultLocale);
         return next();
       }
