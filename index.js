@@ -23,26 +23,6 @@ module.exports = {
     self.localized = [ 'title' ].concat(options.localized || []);
 
 
-    self.setLocale = function(req,locale){
-
-      var set = locale;
-
-      if(!set){
-        set = req.session.locale;
-      }
-
-
-      if(!set){
-        set = self.defaultLocale;
-      }
-
-      req.locale = set;
-      req.session.locale = set;
-      req.data.activeLocale = set;
-      self.apos.i18n.setLocale(req,set);
-
-
-    };
 
     self.localizedHelper=function(req, res, next) {
       self.addHelpers({
@@ -115,22 +95,57 @@ module.exports = {
 
     self.localizedGet=function(req, res, next) {
       if (req.method !== 'GET') {
+
+        console.log("index.js - Not GET returning");
         return next();
+      }
+
+      function setLocale(req,locale){
+
+        var set = locale;
+
+
+        // if(!set){
+        //   set = req.locale;
+        // }
+        //
+        // if(!set){
+        //   set = req.session.locale;
+        // }
+        //
+        //
+        // if(!set){
+        //   set = self.defaultLocale;
+        // }
+        //
+
+        req.locale = set;
+        // req.session.locale = set;
+        console.log("index.js - Setting locale ",set,req.locale,
+          req.session.locale,locale);
+
+        req.data.activeLocale = set;
+        self.apos.i18n.setLocale(req,set);
+
+
+
       }
 
       var matches = req.url.match(/^\/(\w+)(\/.*|\?.*|)$/);
       if (!matches) {
         //do not keep the session locale here
-        self.setLocale(req,self.defaultLocale);
+        console.log("index.js - Not MATCH returning");
+        setLocale(req,self.defaultLocale);
         return next();
       }
 
       if (!_.has(options.locales, matches[1])) {
-        self.setLocale(req,self.defaultLocale);
+        console.log("index.js - Not MATCH returning");
+        setLocale(req,self.defaultLocale);
         return next();
       }
 
-      self.setLocale(req,matches[1]);
+      setLocale(req,matches[1]);
 
       req.url = matches[2];
 
@@ -147,14 +162,14 @@ module.exports = {
       //TODO check why req.locale is always en
       // using req.session.locale as a fallback
       var locale = req.locale;
-      if(req.session && req.session.locale){
-        locale = req.session.locale;
-      }
-
-      if(!locale){
-        locale = self.defaultLocale;
-      }
-
+      // if(req.session && req.session.locale){
+      //   locale = req.session.locale;
+      // }
+      //
+      // if(!locale){
+      //   locale = self.defaultLocale;
+      // }
+      //
 
       if(!locale){
         return;
@@ -169,10 +184,7 @@ module.exports = {
         "locales":options.locales
       });
 
-      var before = JSON.stringify(doc.localized[locale] || {});
-
       _.each(doc, function(value, key) {
-
 
         if (!u.isArea(value)) {
           return;
@@ -225,21 +237,8 @@ module.exports = {
       });
 
 
-      /**
-       * TODO This sometimes causes circular reference problems
-       * we need to check how else to do it
-       */
-      var after = JSON.stringify(doc.localized[locale] || {});
 
-      if (before !== after) {
-        doc.localizedAt[locale] = new Date();
-        if (locale === self.default) {
-          doc.localizedStale = _.without(_.keys(self.locales), self.defaultLocale);
-        } else {
-          // modifies in place
-          _.pull(doc.localizedStale, locale);
-        }
-      }
+
 
     };
 
