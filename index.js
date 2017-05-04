@@ -103,6 +103,7 @@ module.exports = {
 
         var set = locale;
         req.locale = set;
+        req.session.locale = set;
         req.data.activeLocale = set;
         self.apos.i18n.setLocale(req,set);
 
@@ -136,23 +137,27 @@ module.exports = {
 
     self.docBeforeSave = function(req, doc, options) {
 
-      //TODO check why req.locale is always en
-      // using req.session.locale as a fallback
-      var locale = req.locale;
-      // if(req.session && req.session.locale){
-      //   locale = req.session.locale;
-      // }
-      //
-      // if(!locale){
-      //   locale = self.defaultLocale;
-      // }
-      //
+      /**
+       * For future reference.
+       *
+       *
+       * This is called on a POST which means that the URL does not
+       * contain a locale prefix which in turn means that req.locale will
+       * not be set through the logic in the localizedGet middleware.
+       *
+       * This means that we need to store the locale in the session
+       * so that we have it available here
+       */
+      var locale =req.locale;
+
+      if(req.session && req.session.locale){
+        locale = req.session.locale;
+      }
+
 
       if(!locale){
         return;
       }
-
-
 
 
       u.ensureProperties(doc,{
@@ -190,6 +195,7 @@ module.exports = {
 
 
       _.each(self.localized,function(name){
+
 
         name = u.localizeForPage(doc,name);
 
