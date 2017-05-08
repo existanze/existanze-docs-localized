@@ -1,7 +1,8 @@
 var _ = require('lodash');
 var async = require('async');
 var util = require("util");
-var u = require("./lib/utils");
+var localized = require("./lib/localized");
+
 
 module.exports = {
   improve: 'apostrophe-docs',
@@ -16,12 +17,11 @@ module.exports = {
   },
   construct:function(self,options){
 
-
+    var l = localized(self);
 
     self.defaultLocale = options.default || "en";
     self.locales = options.locales;
     self.localized = [ 'title' ].concat(options.localized || []);
-
 
 
     self.localizedHelper=function(req, res, next) {
@@ -135,7 +135,7 @@ module.exports = {
 
     };
 
-    self.docBeforeSave = function(req, doc, options) {
+    self.docBeforeSave = function(req, doc, options,callback) {
 
       /**
        * For future reference.
@@ -156,72 +156,10 @@ module.exports = {
 
 
       if(!locale){
-        return;
+        return setImmediate(callback);
       }
 
-
-      u.ensureProperties(doc,{
-        "defaultLocale": self.defaultLocale,
-        "locale": locale,
-        "locales":options.locales
-      });
-
-      _.each(doc, function(value, key) {
-
-        if (!u.isArea(value)) {
-          return;
-        }
-
-        if (u.isUniversal(doc, key,self.options)) {
-          return;
-        }
-
-
-        doc.localized[locale][key] = value;
-
-        // Revert .body to the default culture's body, unless
-        // that doesn't exist yet, in which case we let it spawn from
-        // the current culture
-        if (_.has(doc.localized[self.defaultLocale], key)) {
-          doc[key] = doc.localized[self.defaultLocale][key];
-        } else {
-          doc.localized[self.defaultLocale][key] = doc[key];
-
-        }
-
-
-
-      });
-
-
-      _.each(self.localized,function(name){
-
-
-        name = u.localizeForPage(doc,name);
-
-        if(!name){
-          return;
-        }
-
-        if(u.isArea(doc[name])){
-          return;
-        }
-
-
-
-        doc.localized[locale][name] = doc[name];
-
-        if (_.has(doc.localized[self.defaultLocale], name)) {
-          doc[name] = doc.localized[self.defaultLocale][name];
-        } else {
-          doc.localized[self.defaultLocale][name] = doc[name];
-        }
-
-      });
-
-
-
-
+      l.syncLocale(doc,locale,callback);
 
     };
 
@@ -259,11 +197,61 @@ module.exports = {
 
 
     // merge new methods with all apostrophe-cursors
-    self.apos.define('apostrophe-cursor', require('./lib/cursor.js')({
-      defaultLocale : self.defaultLocale,
-      locales : self.locales,
-      localized : self.localized
-    }));
+    self.apos.define('apostrophe-cursor', require('./lib/cursor.js')(self,l));
+
+    self.apos.tasks.add("localized","migrate","This is a task that migration from doc.localized to proper collections in the database",function(apos,arg,callback){
+
+
+      var cursor = apos.db.collection("aposDocs").find().sort({"type":1,"_id":1});
+
+      var stop = false;
+
+      async.doUntil(function(callback){
+
+        cursor.nextObject(function (err, doc) {
+
+          if(err || !doc){
+            stop = true;
+            return callback(err);
+          }
+
+
+          if(!doc.localized){
+            console.log("Skipping ",doc._id,doc.type );
+            return callback();
+          }
+
+
+          if(options.neverTypes.indexOf(doc.type) >= 0){
+
+            console.log("\tNever type, removing localized",options.neverTypes.indexOf(doc.type));
+            delete doc.localized;
+            delete doc.localizedAt;
+            delete doc.localizedStale;
+            delete doc.localizedSeen;
+            return apos.db.collection("aposDocs").update({_id:doc._id},doc,callback);
+
+
+          }
+
+          console.log("Migrating ",doc.type,doc._id,doc.title);
+          l.migrateLocale(doc,function(err){
+
+            if(err){
+              console.error(err);
+              return callback(err)
+            }
+
+            return apos.db.collection("aposDocs").update({_id:doc._id},doc,callback);
+
+          });
+
+
+        });
+      }
+      ,function () { return stop }
+      ,callback);
+    });
   }
 
 
