@@ -222,7 +222,7 @@ module.exports = {
           }
 
 
-          if(options.neverTypes.indexOf(doc.type) >= 0){
+          if(options.neverTypes && options.neverTypes.indexOf(doc.type) >= 0){
 
             console.log("\tNever type, removing localized",options.neverTypes.indexOf(doc.type));
             delete doc.localized;
