@@ -17,11 +17,16 @@ module.exports = {
   },
   construct:function(self,options){
 
+
+
     var l = localized(self);
 
     self.defaultLocale = options.default || "en";
     self.locales = options.locales;
     self.localized = [ 'title' ].concat(options.localized || []);
+
+    self.disableLoad = options.disableLoad || false;
+    self.disableSave = options.disableSave || false;
 
 
     self.localizedHelper=function(req, res, next) {
