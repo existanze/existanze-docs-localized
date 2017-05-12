@@ -25,8 +25,12 @@ module.exports = {
     self.locales = options.locales;
     self.localized = [ 'title' ].concat(options.localized || []);
 
+    self.neverTypes = options.neverTypes || ['apostrophe-image'];
+
     self.disableLoad = options.disableLoad || false;
     self.disableSave = options.disableSave || false;
+
+
 
 
     self.localizedHelper=function(req, res, next) {
