@@ -8,11 +8,8 @@ module.exports = {
   improve: 'apostrophe-docs',
   alias:'existanzeDocs',
   afterConstruct:function(self){
-
-
     self.apos.app.use(self.localizedHelper);
     self.apos.app.use(self.localizedGet);
-
 
   },
   construct:function(self,options){
@@ -25,7 +22,7 @@ module.exports = {
     self.locales = options.locales;
     self.localized = [ 'title' ].concat(options.localized || []);
 
-    self.neverTypes = options.neverTypes || ['apostrophe-image'];
+    self.neverTypes =options.neverTypes || ['apostrophe-image'];
 
     self.disableLoad = options.disableLoad || false;
     self.disableSave = options.disableSave || false;
