@@ -258,6 +258,33 @@ module.exports = {
       ,function () { return stop }
       ,callback);
     });
+    self.apos.tasks.add("localized","correctClone","Remove the _ properties from the documents ",function(apos,arg,callback){
+
+
+      var cursor = apos.db.collection("aposLocalizedDocs").find().sort({"type":1,"_id":1});
+      var stop = false;
+
+      async.doUntil(function(callback){
+
+        cursor.nextObject(function (err, doc) {
+
+          if(err || !doc){
+            stop = true;
+            return callback(err);
+          }
+
+          var d = apos.utils.clonePermanent(doc);
+          d._id = doc._id;
+
+          return apos.db.collection("aposLocalizedDocs").update({_id:doc._id},d,callback);
+
+        });
+      }
+      ,function () { return stop }
+      ,callback);
+    });
+
+
   }
 
 
